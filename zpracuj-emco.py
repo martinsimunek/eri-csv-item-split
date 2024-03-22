@@ -26,7 +26,7 @@ def parse_inner_text(inner_text, output_row, field_names, id):
     if 'Data' not in field_names:
         field_names.append('Data')
     inner_text = inner_text.replace('<br>', '')
-    inner_text = re.sub(r'([0-9],?[0-9]*) ?(g|kcal|ml),?:?;?\.? *', r'\1 \2\t', inner_text)
+    inner_text = re.sub(r'([0-9],?[0-9]*) ?(g|(kJ/)?kcal|ml),?:?;?\.? *', r'\1 \2\t', inner_text)
     inner_text = re.sub(r' */ *', '/', inner_text)
     inner_text = re.sub(r':? ([0-9]|&lt;[0-9])', r':;\1', inner_text)
 
