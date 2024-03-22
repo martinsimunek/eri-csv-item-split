@@ -1,9 +1,15 @@
 import re
 
-path = 'c:/Users/simunek/Documents/data.git/mis/singe-use-utils/eri-parse-emco/'
-inputfilename = 'vstup-emco-id-nutri.csv'
-outputfilename = 'vystup-emco-id-nutri.csv'
-failedlinefilename = 'nepodarene-emco-id-nutri.csv'
+path = '.'
+inputfilename = 'vstup-emco-sk-cp1250.csv'
+outputfilename = 'vystup-emco-sk.csv'
+failedlinefilename = 'nepodarene-emco-sk.csv'
+inputencoding = 'cp1250'
+
+path += '/'
+
+print('Zpracování souboru: ', path+inputfilename)
+print('Vstupní kódování: ', inputencoding, ' oddělovač záznamů: tabulátor')
 
 #format_full_html = re.compile(r'<strong> *Výživové údaje na 100 g:</strong><br>Energetická hodnota 1860 kJ/444 kcal, <br>Tuky 13 g, <br>z toho nasycené mastné kyseliny 1,4 g, <br>Sacharidy 69 g, <br>z toho cukry 16 g, <br>Vláknina 5,0 g, <br>Bílkoviny 9,8 g, <br>Sůl 0,07 g, <br>Betaglukany 2,5g  <strong>Výživové údaje na jednu porci 45g:</strong><br>Energetická hodnota 837 kJ/200 kcal, <br>Tuky 5,9 g, <br>z toho nasycené mastné kyseliny 0,6 g, <br>Sacharidy 31 g, <br>z toho cukry 7,2 g, <br>Vláknina 2,3 g, <br>Bílkoviny 4,4 g,<br> Sůl 0,03 g <br> Betaglukany 1,1 g <br>*Příznivého účinku se v rámci zdravého životního stylu a různorodého jídelníčku dosáhne konzumací 3 g betaglukanů z ovsa, ovesných otrub, ječmene a ječných otrub za den.  <strong>Návod k přípravě:</strong>  1. Mysli nasypte do misky. 2. Zalijte mlékem nebo jogurtem. 3. Mysli můžete konzumovat i bez úpravy v suchém stavu. 
 #[^>]+>')
@@ -78,10 +84,9 @@ def load_CSV_with_columns_ID_nutri_line_by_lineCSV(path):
             reader = csv.DictReader(csvfile, delimiter='\t')
             output = []
 
-            #fieldnames = ['ID']
             fieldnames = []
             for row in reader:
-                id = row['ID']
+                id = row['id']
                 nutridescription = row['Nutri']
                 #print(id, row['Nutri'])
                 newoutputrow = {}
@@ -91,12 +96,12 @@ def load_CSV_with_columns_ID_nutri_line_by_lineCSV(path):
                 #break
 
     except FileNotFoundError:
-        print('Soubor ', path, ' nenalezen')
+        print('Soubor ', path, inputfilename, ' nenalezen!')
         exit(1)
     except KeyError:
-        print('Neplatný formát souboru')
+        print('Neplatný formát souboru: ', path, inputfilename, ' - chybí sloupec "ID" nebo "Nutri"')
         exit(2)
-    with open(path+outputfilename, 'w', newline='\n') as outputfile:
+    with open(path+outputfilename, 'w', newline='\n', encoding=inputencoding) as outputfile:
         #outputfile = open(path+outputfilename, 'w', newline='\n')
         #writer = csv.DictWriter(outputfile, fieldnames, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         #writer.writerows(output)
