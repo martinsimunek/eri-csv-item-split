@@ -1,10 +1,12 @@
 import re
 
 path = '.'
-inputfilename = 'vstup-emco-sk-cp1250.csv'
+inputfilename = 'vstup-emco-sk-cp1250.tsv'
 outputfilename = 'vystup-emco-sk.csv'
 failedlinefilename = 'nepodarene-emco-sk.csv'
 inputencoding = 'cp1250'
+newlinedelimiter = '\n'
+itemdelimiter = '\t'
 
 path += '/'
 
@@ -20,11 +22,11 @@ format_plain = re.compile(r'^(Energetick.*)\.$')
 
 def reset_invalidlinesfile():
     with open(path+failedlinefilename, 'w') as file:
-        file.write('\r\n')
+        file.write('')
 
 def append_text_to_failedlines_file(text):
     with open(path+failedlinefilename, 'a') as file:
-        file.write(text+'\n')
+        file.write(text+newlinedelimiter)
 
 def parse_inner_text(inner_text, output_row, field_names, id):
     #output_row['ID'] = id
@@ -37,10 +39,10 @@ def parse_inner_text(inner_text, output_row, field_names, id):
 
     inner_text = make_first_letter_of_each_nutriitem_capital(inner_text)
 
-    output_row['Data'] = id+'\t'+inner_text.strip(' \t') 
+    output_row['Data'] = id+itemdelimiter+inner_text.strip(' \t') 
 
 def make_first_letter_of_each_nutriitem_capital(text):
-    blocks = text.split('\t')
+    blocks = text.split(itemdelimiter)
     blocks_strip = [item.strip() for item in blocks]
     blocks_first_capital = []
     for item in blocks_strip:
@@ -51,7 +53,7 @@ def make_first_letter_of_each_nutriitem_capital(text):
             chars[0] = chars[0].capitalize()
             blocks_first_capital.append(''.join(chars))
 
-    text = '\t'.join(blocks_first_capital)
+    text = itemdelimiter.join(blocks_first_capital)
     return text              
 
 def parse_and_append(nutridescription, output_row, fieldnames, id):
@@ -80,8 +82,8 @@ def load_CSV_with_columns_ID_nutri_line_by_lineCSV(path):
     import csv
 
     try:
-        with open(path+inputfilename, newline='\n') as csvfile:
-            reader = csv.DictReader(csvfile, delimiter='\t')
+        with open(path+inputfilename, newline=newlinedelimiter) as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=itemdelimiter)
             output = []
 
             fieldnames = []
@@ -101,15 +103,15 @@ def load_CSV_with_columns_ID_nutri_line_by_lineCSV(path):
     except KeyError:
         print('Neplatný formát souboru: ', path, inputfilename, ' - chybí sloupec "ID" nebo "Nutri"')
         exit(2)
-    with open(path+outputfilename, 'w', newline='\n', encoding=inputencoding) as outputfile:
-        #outputfile = open(path+outputfilename, 'w', newline='\n')
-        #writer = csv.DictWriter(outputfile, fieldnames, delimiter='\t', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    with open(path+outputfilename, 'w', newline=newlinedelimiter, encoding=inputencoding) as outputfile:
+        #outputfile = open(path+outputfilename, 'w', newline=newlinedelimiter, encoding=inputencoding)
+        #writer = csv.DictWriter(outputfile, fieldnames, delimiter=itemdelimiter, quotechar='"', quoting=csv.QUOTE_MINIMAL)
         #writer.writerows(output)
         for row in output:
             if 'Data' not in row:
                 continue
             line = row['Data']
-            outputfile.write(line+'\n')
+            outputfile.write(line+newlinedelimiter)
             #print(row['Data'])
 
 
