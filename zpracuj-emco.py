@@ -26,9 +26,12 @@ def parse_inner_text(inner_text, output_row, field_names, id):
     if 'Data' not in field_names:
         field_names.append('Data')
     inner_text = inner_text.replace('<br>', '')
-    inner_text = re.sub(r'([0-9],?[0-9]*) ?(g|(kJ/)?kcal|ml),?:?;?\.? *', r'\1 \2\t', inner_text)
+    inner_text = re.sub(r'([0-9],?[0-9]*) ?(m?g|(kJ/)?kcal?|ml)( \(.*\))?\*?,?:?;?\.? *', r'\1 \2\t', inner_text)
+    inner_text = re.sub(r'\) ?, ?', ')\t', inner_text)
+    inner_text = re.sub(r'kca\t', r'kcal\t', inner_text)
+    inner_text = re.sub(r'([0-9],[0-9]*) ?, ?', r'\1\t', inner_text)
     inner_text = re.sub(r' */ *', '/', inner_text)
-    inner_text = re.sub(r':? ([0-9]|&lt;[0-9])', r':;\1', inner_text)
+    inner_text = re.sub(r':? ([0-9]|&lt; ?[0-9]|< ?[0-9])', r':;\1', inner_text)
 
     inner_text = make_first_letter_of_each_nutriitem_capital(inner_text)
 
