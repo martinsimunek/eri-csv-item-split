@@ -52,27 +52,32 @@ def make_first_letter_of_each_nutriitem_capital(text):
 # Heading formats:
 #format_full_html = re.compile(r'<strong> *Výživové údaje na 100 g:</strong><br>Energetická hodnota 1860 kJ/444 kcal, <br>Tuky 13 g, <br>z toho nasycené mastné kyseliny 1,4 g, <br>Sacharidy 69 g, <br>z toho cukry 16 g, <br>Vláknina 5,0 g, <br>Bílkoviny 9,8 g, <br>Sůl 0,07 g, <br>Betaglukany 2,5g  <strong>Výživové údaje na jednu porci 45g:</strong><br>Energetická hodnota 837 kJ/200 kcal, <br>Tuky 5,9 g, <br>z toho nasycené mastné kyseliny 0,6 g, <br>Sacharidy 31 g, <br>z toho cukry 7,2 g, <br>Vláknina 2,3 g, <br>Bílkoviny 4,4 g,<br> Sůl 0,03 g <br> Betaglukany 1,1 g <br>*Příznivého účinku se v rámci zdravého životního stylu a různorodého jídelníčku dosáhne konzumací 3 g betaglukanů z ovsa, ovesných otrub, ječmene a ječných otrub za den.  <strong>Návod k přípravě:</strong>  1. Mysli nasypte do misky. 2. Zalijte mlékem nebo jogurtem. 3. Mysli můžete konzumovat i bez úpravy v suchém stavu. 
 #[^>]+>')
-heading_format_full_html = re.compile(r'^<strong>.*100 ?(g|ml)( ?sm..si ?)?:? ?</strong> *(<br> *)?(.*)(<strong>.*?)??\.?$')    # use 4th group
-heading_format_no_html = re.compile(r'^.* na 100 ?(g|ml)( ?v.robku priemerne obsahuje)?:?(.*)(V..ivov. .daje.*)?\.?$')          # use 3rd group
-heading_format_plain = re.compile(r'^(Energ.*)\.$')                                                                        # use 1st group
+regex_format_full_html = re.compile(r'^<strong>.*100 ?(g|ml)( ?(s|z)m.si ?)?:? ?</strong> *(<br> *)?(.*)(<strong>.*?)??\.?$')       # use 5th group
+#heading_format_no_html = re.compile(r'^.*(na|ve?)? \(?100 ?(g|ml)\)?( ?v.robku priemerne obsahuje)?:?(.*)(V..ivov. .daje.*)?\.?$') # use 4rd group
+#heading_format_plain = re.compile(r'^(Energ.*)\.?$')                                                                               # use 1st group
 #regex_trailing_vyzivove_hodnoty = re.compile(r'<strong> *Výživové údaje na 100 g:</strong><br>')
+regex_format_general_non_html = re.compile(r'^.*(Energ.*)(\*.*)?\.?$')
+regex_tail = re.compile(r'^(.*)\*.*$')
 
-def trim_heading_and_parse_content(nutridescription, output_row, fieldnames, id):
+def trim_head_tail_and_parse_content(nutridescription, output_row, fieldnames, id):
     # remove redundant spaces
     text_compacted = re.sub(' {2,}', ' ', nutridescription).strip()
-    #text_compacted = re.sub('0 ?g sm..si:', '0 g:', text_compacted)
-    if heading_format_full_html.fullmatch(text_compacted):
-        inner_text = heading_format_full_html.fullmatch(text_compacted).group(4)
+    if regex_format_full_html.fullmatch(text_compacted):
+        inner_text = regex_format_full_html.fullmatch(text_compacted).group(5)
         inner_text = inner_text.split('<strong>')[0]
-    elif heading_format_no_html.fullmatch(text_compacted):
-        inner_text = heading_format_no_html.fullmatch(text_compacted).group(2)
-    elif heading_format_plain.fullmatch(text_compacted):
-        inner_text = heading_format_plain.fullmatch(text_compacted).group(1)
+    #elif heading_format_no_html.fullmatch(text_compacted):
+    #    inner_text = heading_format_no_html.fullmatch(text_compacted).group(4)
+    #elif heading_format_plain.fullmatch(text_compacted):
+    #    inner_text = heading_format_plain.fullmatch(text_compacted).group(1)
+    elif regex_format_general_non_html.fullmatch(text_compacted):
+        inner_text = regex_format_general_non_html.fullmatch(text_compacted).group(1)
     else:
         invalidline = id + ': ' + nutridescription
-        #print(invalidline)
         append_text_to_failedlines_file(invalidline)
         return
+    # trim tailing "*Priemerné hodnoty ..."
+    if regex_tail.fullmatch(inner_text):
+        inner_text = regex_tail.fullmatch(inner_text).group(1)
     parse_inner_text(inner_text.strip(), output_row, fieldnames, id)
     #text_compacted = text_compacted.lstrip(regex_starting_vyzivove_hodnoty).rstrip(regex_trailing_vyzivove_hodnoty)
     #parts = text_with_spaces_compacted.split('</strong>')
@@ -93,7 +98,7 @@ def load_CSV_with_columns_ID_nutri_line_by_lineCSV(path):
                 nutridescription = row['Nutri']
                 #print(id, row['Nutri'])
                 newoutputrow = {}
-                trim_heading_and_parse_content(nutridescription, newoutputrow, fieldnames, id)
+                trim_head_tail_and_parse_content(nutridescription, newoutputrow, fieldnames, id)
                 output.append(newoutputrow)
                 #print(newoutputrow)
                 #break
